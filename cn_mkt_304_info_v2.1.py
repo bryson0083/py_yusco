@@ -500,11 +500,13 @@ def Read_51BXG():
 	str_date = str(datetime.datetime.now())
 	str_date = parser.parse(str_date).strftime("%Y-%m-%d")
 	end_date = str_date
+	end_date2 = parser.parse(str_date).strftime("%Y%m%d")
 
 	date_1 = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 	start_date = date_1 + datetime.timedelta(days=-10)
 	start_date = str(start_date)[0:10]
 	start_date = parser.parse(start_date).strftime("%Y-%m-%d")
+	start_date2 = parser.parse(start_date).strftime("%Y%m%d")
 	#print(start_date + "~" + end_date)
 
 	err_flag = False
@@ -586,8 +588,12 @@ def Read_51BXG():
 	df1 = pd.DataFrame(all_no1[0], columns = ['dt','tk_price_no1','tk_price_cut_no1'])
 	df2 = pd.DataFrame(all_no1[1], columns = ['dt','bao_price_no1','bao_price_cut_no1'])
 	df3 = pd.DataFrame(all_no1[2], columns = ['dt','lz_price_no1','lz_price_cut_no1'])
-	df_all_no1 = df1.merge(df2,on='dt').merge(df3,on='dt')
-	df_all_no1['dl_304_no1'] = df_all_no1['lz_price_no1'] - 900
+	df_all_no1 = df1.merge(df2, on='dt', how='outer').merge(df3,on='dt', how='outer')
+	df_all_no1 = df_all_no1.fillna(0)	#join完後的NaN值以0取代
+
+	if not df3.empty:
+		df_all_no1['dl_304_no1'] = df_all_no1['lz_price_no1'] - 900
+
 	#print(all_no1)
 	#print(df_all_no1)
 
@@ -649,13 +655,26 @@ def Read_51BXG():
 
 	df1 = pd.DataFrame(all_2b[0], columns = ['dt','zp_price_2b','zp_price_cut_2b'])
 	df2 = pd.DataFrame(all_2b[1], columns = ['dt','lz_price_2b','lz_price_cut_2b'])
-	df_all_2b = df1.merge(df2,on='dt')
-	df_all_2b['dl_304_2b'] = df_all_2b['lz_price_2b'] - 1600
+	df_all_2b = df1.merge(df2, on='dt', how='outer')
+	df_all_2b = df_all_2b.fillna(0)	#join完後的NaN值以0取代
+
+	if not df2.empty:
+		df_all_2b['dl_304_2b'] = df_all_2b['lz_price_2b'] - 1600
+
 	#print(all_2b)
 	#print(df_all_2b)
 
 	#合併No.1與2B Dataframe
-	df_all = df_all_no1.merge(df_all_2b,on='dt')
+	df_all = df_all_no1.merge(df_all_2b, on='dt')
+	
+	#針對合併後的dataframe，若有某些公司當天某些產品
+	#沒有報價資料，則新增該欄位，並塞入0值
+	if not 'dl_304_no1' in df_all.columns:
+		df_all['dl_304_no1'] = 0
+
+	if not 'dl_304_2b' in df_all.columns:
+		df_all['dl_304_2b'] = 0
+
 	#print(df_all)
 
 	#寫入/更新資料庫

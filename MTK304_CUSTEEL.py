@@ -1,4 +1,4 @@
-import sys
+import requests
 import json
 import time
 import datetime
@@ -14,17 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from random import randint
 
-print("Executing MTK304_CUSTEEL...")
-#寫入LOG File
-dt=datetime.datetime.now()
-str_date = str(dt)
-str_date = parser.parse(str_date).strftime("%Y%m%d")
-
-name = "MTK304_CUSTEEL_" + str_date + ".txt"
-file = open(name, 'a', encoding = 'UTF-8')
-
-tStart = time.time()#計時開始
-file.write("\n\n\n*** LOG datetime  " + str(datetime.datetime.now()) + " ***\n")
+err_flag = False
 
 #讀取帳密參數檔
 with open('account.json') as data_file:
@@ -225,11 +215,6 @@ if title_dt_no1 != title_dt_2b:
 df_all = df_no1.merge(df_2b,on='dt')
 #print(df_all)
 
-#建立資料庫連線
-conn = sqlite3.connect("yusco.db")
-
-err_flag = False
-
 #寫入/更新資料庫
 for i in range(0,len(df_all)):
 	dt = df_all['dt'][i]
@@ -304,19 +289,3 @@ else:
 
 # 關閉瀏覽器視窗
 driver.quit();
-
-tEnd = time.time()#計時結束
-file.write ("\n\n\n結轉耗時 %f sec\n" % (tEnd - tStart)) #會自動做進位
-file.write("*** End LOG ***\n\n")
-
-# Close File
-file.close()
-
-#關閉資料庫連線
-conn.close
-
-# 如果執行過程無錯誤，最後刪除log file
-if err_flag == False:
-    os.remove(name)
-
-print("End of prog...")

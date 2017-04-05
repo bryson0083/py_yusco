@@ -825,9 +825,10 @@ file.close()
 #關閉資料庫連線
 conn.close
 
+"""
 # 如果執行過程無錯誤，最後刪除log file
 err_cnt = rt1 + rt2 + rt3 + rt4
 if err_cnt == 0:
     os.remove(name)
-
+"""
 print("End of prog...")
