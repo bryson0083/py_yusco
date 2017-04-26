@@ -92,7 +92,7 @@ for i in range(0,len(df)):
 		file.write("STOP /ID=" + str(pid) + "\n")
 
 		cmd = "STOP /ID=" + str(pid) + "\r"
-		tn.read_until(b"[MIS.CRM]",timeout)
+		tn.read_until(b"[MIS.MGR]",timeout)
 		tn.write(cmd.encode())
 		time.sleep(2)
 
@@ -165,7 +165,7 @@ for i in range(0,len(df)):
 		file.write("STOP /ID=" + str(pid) + "\n")
 
 		cmd = "STOP /ID=" + str(pid) + "\r"
-		tn.read_until(b"[MIS.CRM]",timeout)
+		tn.read_until(b"[MIS.MGR]",timeout)
 		tn.write(cmd.encode())
 		time.sleep(2)
 
