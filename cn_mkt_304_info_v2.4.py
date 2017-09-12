@@ -438,6 +438,9 @@ def Read_MTP():
 	random_sec = randint(2,5)
 	time.sleep(random_sec)
 
+	#20170717 網站登入後會跳出一個小視窗，需要先關閉，否則會出現錯誤
+	driver.find_element_by_xpath("//a[@title='Close'][@class='modalCloseImg simplemodal-close']").click()
+
 	#若有出現Switch Device按鈕，就點下去
 	try:
 		title = driver.find_elements_by_xpath('//div[@class="title_div"]/h1')[0].text
@@ -551,6 +554,7 @@ def Read_MTP():
 	else:
 		conn.execute("rollback")
 		return 1
+
 
 def Read_51BXG():
 	#起訖日期(當天日期到往前推10天)
@@ -1020,10 +1024,6 @@ file.write("\n\n\n*** LOG datetime  " + str(datetime.datetime.now()) + " ***\n")
 #建立資料庫連線
 conn = cx_Oracle.connect('tqc/tqc@rp547a')
 
-print("Read metalprices.com ...")
-rt1 = Read_MTP()
-#print(rt1)
-
 print("Read 51bxg ...")
 rt2 = Read_51BXG()
 #print(rt2)
@@ -1032,8 +1032,13 @@ print("Read cnccm ...")
 rt3 = Read_CNCCM()
 #print(rt3)
 
-print("Read custeel ...")
-rt4 = Read_CUSTEEL()
+print("Read metalprices.com ...")
+rt1 = Read_MTP()
+#print(rt1)
+
+#20170717 中國聯合帳號過期，暫時不跑
+#print("Read custeel ...")
+#rt4 = Read_CUSTEEL()
 #print(rt4)
 
 tEnd = time.time()#計時結束
@@ -1047,7 +1052,8 @@ file.close()
 conn.close
 
 # 如果執行過程無錯誤，最後刪除log file
-err_cnt = rt1 + rt2 + rt3 + rt4
+#err_cnt = rt1 + rt2 + rt3 + rt4
+err_cnt = rt1 + rt2 + rt3
 if err_cnt == 0:
     os.remove(name)
 

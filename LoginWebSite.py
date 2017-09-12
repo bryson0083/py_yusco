@@ -9,6 +9,52 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import re
+from selenium import webdriver
+import time
+
+def Login_CNFEOL(s):
+	driver = webdriver.PhantomJS()
+
+	#讀取帳密參數檔
+	with open('account.json') as data_file:
+		data = json.load(data_file)
+
+	acc_id = data['cnfeol']['id']
+	acc_pwd = data['cnfeol']['pwd']
+	
+	#print('acc=' + acc_id)
+	#print('pwd=' + acc_pwd)
+
+	# 首頁取得signin_check參數值
+	driver.get('http://www.cnfeol.com/')
+	pageSource = driver.page_source
+	#file.write(pageSource)
+
+	#關閉PhantomJS
+	driver.close()
+
+	#讀取signin_check
+	sp = BeautifulSoup(pageSource, 'html.parser')
+
+	signin_check = sp.find('input', attrs={'id':'signin_check'}).get('value')
+	#print(signin_check)
+
+	#網站登入
+	headers = {'User-Agent':'User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36'}
+	URL  = 'http://www.cnfeol.com/member/membersigninfrombox.aspx'
+
+	payload = {
+			"return_url": "http://www.cnfeol.com/",
+			"signin_check": signin_check,
+			"Signin_MemberName": acc_id,
+			"Signin_MemberPassword": acc_pwd,
+			"Signin_Submit": "",
+			}
+
+	r = s.post(URL, data=payload, headers=headers)
+	
+	return True
+
 
 def Login_CNCCM(s):
 	#讀取帳密參數檔
