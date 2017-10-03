@@ -50,9 +50,17 @@ def Login_CNFEOL(s):
 			"Signin_MemberPassword": acc_pwd,
 			"Signin_Submit": "",
 			}
+	name = "tmp.txt"
+	file = open(name, 'a', encoding = 'UTF-8')
 
 	r = s.post(URL, data=payload, headers=headers)
-	
+	time.sleep(30)
+	r = s.get("http://www.cnfeol.com/member/membersigninformscript.aspx?fun=new", headers=headers)
+	r = s.get("http://www.cnfeol.com/ni/p_1319522.aspx", headers=headers)
+	file.write(r.text)
+	# Close File
+	file.close()
+
 	return True
 
 
