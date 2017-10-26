@@ -451,14 +451,16 @@ def Read_MTP():
 	time.sleep(5)
 
 	#確認登入成功並且切換設備成功
-	title = driver.find_elements_by_xpath('//div[@class="title"]')[0].text
+	#title = driver.find_elements_by_xpath('/html/body/div[2]/div/div[2]/div[1]/div/div[1]/div[1]/h2')[0].text
 	#print(title)
 
-	time.sleep(2)
+	#time.sleep(2)
 
-	find_str_idx = title.find("Nickel")
+	#find_str_idx = len(title)
 	#print(find_str_idx)
 
+	#不檢查title，直接開啟報價頁面抓取資料
+	find_str_idx = 1
 
 	if find_str_idx > 0:
 		driver.get("https://metals.argusmedia.com/feeds/lme/nickel")
