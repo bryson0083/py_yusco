@@ -40,10 +40,14 @@ def Chk_AP4():
 
 	#因大電腦系統與電腦的系統時間存在時差，大約比電腦時間慢2分鐘，
 	#因此產生search string時，需要往前後推個幾分鐘作為搜尋範圍。
-	#以當下的時間，往前推3分鐘與往後推2分鐘的日期時間
+	#以當下的時間，往前推4分鐘與往後推2分鐘的日期時間
 	chk_dt_ls = []
-	i=-3
-	for i in range(-3,3,1):
+	#i=-4
+	i=-6
+
+	#for i in range(-4,3,1):
+	for i in range(-6,3,1):
+
 		tmp_date = parser.parse(str_date).strftime("%Y/%m/%d %H:%M")
 		date_1 = datetime.datetime.strptime(tmp_date, "%Y/%m/%d %H:%M")
 		tmp_date = date_1 + datetime.timedelta(minutes=i)
@@ -125,7 +129,7 @@ def Chk_AP4():
 		#Generate searching string
 		sear_str = 'SEAR BC5$LOG:BC5_A4_CMU.' + dt + ' "net test positive acknowledge (A)","' + chk_dt + '" /MATCH=AND /STATISTICS\r'
 		file.write(sear_str + "\n")
-		#print(sear_str)
+		print(sear_str)
 
 		#waiting for prompt
 		tn.read_until(b"[MIS.CRM]",timeout)

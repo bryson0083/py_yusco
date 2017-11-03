@@ -49,7 +49,7 @@ for row in rows:
 
 #print(content)
 df = pd.DataFrame(content[1:], columns = content[0])
-df = df.sort_values(by=['系統名稱'], ascending=[True])	#依據系統代號排序
+df = df.sort_values(by=['系統名稱', '上線日期'], ascending=[True, True])	#依據系統代號排序
 #print(df)
 
 #以下開始產生WORD檔程序
@@ -80,14 +80,14 @@ paragraph.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run = paragraph.add_run(str(yyy) + '年度生產資訊處工作實績一覽表', style = 'CommentsStyle')
 
 #加入表格
-t = document.add_table(rows = row_cnt+1, cols = col_cnt, style='Light List')
+t = document.add_table(rows = row_cnt+1, cols = col_cnt - 3, style='Light List')
 #t.style = 'Table Grid'
 #t.style = 'Medium Shading 2 Accent 1'
 #t.style = 'Medium List 2'
 #t.style = 'Light List'
 
 # add the header rows.
-for j in range(df.shape[-1]):
+for j in range(df.shape[-1] - 3):
 	t.cell(0,j).text = df.columns[j]
 
 # add the rest of the data frame
@@ -108,7 +108,7 @@ for i in range(df.shape[0]):
 		num = 1
 		#print('curr=>' + curr_sysid + "   prev=>" + prev_sysid)
 
-	for j in range(df.shape[-1]):
+	for j in range(df.shape[-1] - 3):
 		t.cell(i+1,j).text = str(df.values[i,j])
 
 		#系統代號轉換為中文敘述
@@ -216,7 +216,7 @@ for i in range(df.shape[0]):
 
 		#上線日期，日期格式轉換
 		if j == 3:
-			t.cell(i+1,j).text = parser.parse(str(df.values[i,j])).strftime("%Y/%m/%d")
+			t.cell(i+1,j).text = parser.parse(str(df.values[i,j])[:-2]).strftime("%Y/%m/%d")
 
 		if diff_flag == False:
 			#儲存格合併
