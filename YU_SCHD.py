@@ -25,6 +25,7 @@ import AP4_SEAR_1003_V1_3 as Err1003
 import cn_mkt_304_info_v2_4_3 as mkt304
 import CPS_DEL_LOG_V2 as cps_log_del
 import CRM_DEL_LOG_V2 as crm_log_del
+import DAILY_SYS_CHK as sys_ck
 
 def job():
 	str_date = str(datetime.datetime.now())
@@ -46,6 +47,11 @@ def job4():
 	print("執行job 4: 目前時間:" + str_date + "\n")
 	cps_log_del.DEL_CPS_LOG()
 	crm_log_del.DEL_CRM_LOG()
+
+def job5():
+	str_date = str(datetime.datetime.now())
+	print("執行job 5: 目前時間:" + str_date + "\n")
+	sys_ck.DAILY_SYS_CHK()
 
 if __name__ == '__main__':
 	#取得目前時間
@@ -73,6 +79,9 @@ if __name__ == '__main__':
 	#CPS、CRM舊LOG檔案刪除(每個月的第3日執行)
 	if str_day == "3":
 		schedule.every().day.at("09:10").do(job4)
+
+	#每日系統檢查(僅STA)
+	schedule.every().day.at("08:05").do(job5)
 
 	while True:
 	    schedule.run_pending()
