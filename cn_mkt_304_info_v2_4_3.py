@@ -642,13 +642,15 @@ def Read_51BXG():
 		#print(rdata)
 
 		#排除空的list元素，與讀取需要的部分欄位
+		#20171120 因應網頁變動，產品No.1報價，欄位少了"毛切邊價差"資訊，
+		#         與林怡君協調結果，僅抓取毛邊價，不再計算切邊價
 		data = []
 		for row in rdata:
 			if len(row) > 0:
-				dt = str(row[8])[:10].replace("-","")		# 資料日期
-				price = int(row[7].replace(" (含税)", ""))	# 毛邊價
-				price_diff = int(row[5].replace("切边+", ""))	# 毛切邊差價
-				price_cut = price + price_diff	# 切邊價
+				dt = str(row[7])[:10].replace("-","")		# 資料日期
+				price = int(row[6].replace(" (含税)", ""))	# 毛邊價
+				price_diff = 0
+				price_cut = 0								# 切邊價
 				data.append((dt, price, price_cut))
 
 		#print(data)
@@ -713,32 +715,36 @@ def Read_51BXG():
 		#print(rdata)
 
 		#排除空的list元素，與讀取需要的部分欄位
+		#20171120 因應網頁變動，產品2B報價，欄位少了"毛切邊價差"資訊，
+		#		  與林怡君協調結果，
+		#		  304鋼種，若報價僅有切邊價，則切邊價固定減180元作為毛邊價。
+		#		  430鋼種，若報價僅有切邊價，則切邊價固定減100元作為毛邊價。
 		data = []
 		for row in rdata:
 			if len(row) > 0:
 				if x == 0:	# 304 张家港浦项
-					dt = str(row[8])[:10].replace("-","")		# 資料日期
-					price_cut = int(row[7].replace(" (含税)", ""))	# 切邊價
-					price_diff = int(row[5].replace("毛边-", ""))	# 毛切邊差價
-					price = price_cut - price_diff	# 毛邊價
+					dt = str(row[7])[:10].replace("-","")			# 資料日期
+					price_cut = int(row[6].replace(" (含税)", ""))	# 切邊價
+					price_diff = -180								# 毛切邊差價
+					price = price_cut + price_diff					# 毛邊價
 					data.append((dt, price, price_cut))
 				elif x == 1: # 304 鞍钢联众
-					dt = str(row[8])[:10].replace("-","")		# 資料日期
-					price = int(row[7].replace(" (含税)", ""))		# 毛邊價
-					price_diff = int(row[5].replace("切边+", ""))	# 毛切邊差價
-					price_cut = price + price_diff	# 切邊價
+					dt = str(row[7])[:10].replace("-","")			# 資料日期
+					price = int(row[6].replace(" (含税)", ""))		# 毛邊價
+					price_diff = 0									# 毛切邊差價
+					price_cut = 0									# 切邊價
 					data.append((dt, price, price_cut))
 				elif x == 2: # 430 太钢不锈
-					dt = str(row[8])[:10].replace("-","")		# 資料日期
-					price_cut = int(row[7].replace(" (含税)", ""))	# 切邊價
-					price_diff = int(row[5].replace("毛边-", ""))	# 毛切邊差價
-					price = price_cut - price_diff	# 毛邊價
+					dt = str(row[7])[:10].replace("-","")			# 資料日期
+					price_cut = int(row[6].replace(" (含税)", ""))	# 切邊價
+					price_diff = -100								# 毛切邊差價
+					price = price_cut + price_diff					# 毛邊價
 					data.append((dt, price, price_cut))
 				elif x == 3: # 430 鞍钢联众
-					dt = str(row[8])[:10].replace("-","")		# 資料日期
-					price_cut = int(row[7].replace(" (含税)", ""))	# 切邊價
-					price_diff = int(row[5].replace("毛边-", ""))	# 毛切邊差價
-					price = price_cut - price_diff	# 毛邊價
+					dt = str(row[7])[:10].replace("-","")			# 資料日期
+					price_cut = int(row[6].replace(" (含税)", ""))	# 切邊價
+					price_diff = -100								# 毛切邊差價
+					price = price_cut + price_diff					# 毛邊價
 					data.append((dt, price, price_cut))
 		#print(data)
 		all_2b.append(data)
@@ -856,7 +862,6 @@ def Read_51BXG():
 	else:
 		conn.execute("rollback")
 		return 1
-
 
 def Read_CNCCM():
 	global conn
@@ -1039,17 +1044,35 @@ def MAIN_CN_MKT_304():
 	global conn
 	conn = cx_Oracle.connect('tqc/tqc@rp547a')
 
-	print("Read 51bxg ...")
-	rt2 = Read_51BXG()
-	#print(rt2)
+	try:
+		print("Read 51bxg ...")
+		rt2 = Read_51BXG()
+		#print(rt2)
+	except Exception as e:
+		rt2 = 1
+		print("51bxg 資料抓取錯誤，例外訊息如下:")
+		print(e.args)
+		print("\n\n")
 
-	print("Read cnccm ...")
-	rt3 = Read_CNCCM()
-	#print(rt3)
+	try:
+		print("Read cnccm ...")
+		rt3 = Read_CNCCM()
+		#print(rt3)
+	except Exception as e:
+		rt3 = 1
+		print("cnccm 資料抓取錯誤，例外訊息如下:")
+		print(e.args)
+		print("\n\n")
 
-	print("Read metalprices.com ...")
-	rt1 = Read_MTP()
-	#print(rt1)
+	try:
+		print("Read metalprices.com ...")
+		rt1 = Read_MTP()
+		#print(rt1)
+	except Exception as e:
+		rt1 = 1
+		print("MTP 資料抓取錯誤，例外訊息如下:")
+		print(e.args)
+		print("\n\n")
 
 	#20170717 中國聯合帳號過期，暫時不跑
 	#print("Read custeel ...")
@@ -1074,8 +1097,5 @@ def MAIN_CN_MKT_304():
 
 	print("本次中國304市場報價資訊抓取結束，等待下次執行...\n\n\n")
 
-############################################################################
-# Main                                                                     #
-############################################################################
 if __name__ == '__main__':
 	MAIN_CN_MKT_304()
