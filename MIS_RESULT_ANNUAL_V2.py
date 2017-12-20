@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-年度工作實績表文件檔產生
+年度工作實績表文件檔產生 V2
 
 @author: Bryson Xue
 
 @Note: 
-	1. 從EC工作實績表，查詢整年度資料，並將查詢結果，複製貼到EXCEL檔保存(命名為raw_data.xlsx)
-	2. EXCEL內容整理，先巡一遍刪除不屬於本部門負責系統之資料，
-	   或修正掛錯系統代號資料
-	3. 執行本程式產生WORD文件檔案
+	1. 讀取 SQL SERVER 整年度資料工作實績表資料
+	2. 執行本程式產生WORD文件檔案
+	3. 直接讀取資料庫，轉word文件
 
 @Ref:
-	https://stackoverflow.com/questions/20297332/python-pandas-dataframe-retrieve-number-of-columns
-	https://stackoverflow.com/questions/40596518/writing-a-python-pandas-dataframe-to-word-document
-	http://zhaozhiming.github.io/blog/2015/08/16/hello-python-doxc/
-	http://yshblog.com/blog/40
-	http://i.dataguru.cn/mportal.php?mod=view&aid=11962
-	https://stackoverflow.com/questions/41985320/python-docx-set-the-text-drirection-rtl
 
 """
-import openpyxl as px
+import sys
+import pyodbc 
 import pandas as pd
 from docx import Document
 from docx.enum.style import WD_STYLE_TYPE
@@ -30,34 +24,51 @@ import datetime
 from dateutil import parser
 from dateutil.parser import parse
 
+err_flag = False
+
 #Get current date
 str_date = str(datetime.datetime.now())
 yyyy = parser.parse(str_date).strftime("%Y")
 yyy = int(yyyy) - 1911
 
-#讀取資料來源EXCEL FILE
-W = px.load_workbook('raw_data.xlsx')
-p = W.get_sheet_by_name(name = '工作表1')
+#設定抓取日期區間
+dt_st = yyyy + '0101'
+dt_ed = yyyy + '1231'
 
-rows = p.rows
-columns = p.columns
+#設定抓取日期區間(手動)
+#dt_st = '20171120'
+#dt_ed = '20171120'
 
-content = []
-for row in rows:
-	line = [col.value for col in row]
-	content.append(line)
+#建立資料庫連線
+conn = pyodbc.connect("Driver={SQL Server Native Client 10.0};"
+					  "Server=ntsr12;"
+					  "Database=per;"
+					  "uid=sqluser;pwd=sqluser")
 
-#print(content)
-df = pd.DataFrame(content[1:], columns = content[0])
-df = df.sort_values(by=['系統名稱', '上線日期'], ascending=[True, True])	#依據系統代號排序
-#print(df)
+cursor = conn.cursor()
+
+#讀取工作實績資料，以系統代號、事件日期排序
+try:
+	sql_str = "select * from ( select sys_no, title, useful, event_date, emplno, ( select username from secuser where userno = 'yu' + emplno) as username, ( select deptid from yd2a110m where emplno = yd2a600m.emplno) as deptid from yd2a600m where event_date >= '" + dt_st + "' and event_date <= '" + dt_ed + "' ) as a where a.deptid like 'F23%' order by sys_no, event_date"
+	cursor.execute(sql_str)
+	rt_list = cursor.fetchall()
+	#print(rt_list)
+
+except Exception as e:
+	err_flag = True
+	print("EXEC SQL:\n" + sql_str + "\n")
+	print("Err:\n" + str(e.args))
+	sys.exit("SQL Error 程式異常終止...")
+
+labels = ['sys_no', 'title', 'useful', 'event_date', 'emplno', 'username', 'deptid']
+df = pd.DataFrame.from_records(rt_list, columns=labels)
 
 #以下開始產生WORD檔程序
-#取的df資料筆數
+#取df的資料筆數
 row_cnt = df.shape[0]
 #print(str(df.shape[0]))
 
-#取的df資料欄位數
+#取df的資料欄位數
 col_cnt = df.shape[1]
 #print(str(df.shape[1]))
 
@@ -228,6 +239,6 @@ for i in range(df.shape[0]):
 	num += 1
 
 # save the doc
-document.save('./mis_result_annual.doc')
 document.save('./mis_result_annual.docx')
+
 print("End of prog.")
