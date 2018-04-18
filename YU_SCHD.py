@@ -26,6 +26,7 @@ import cn_mkt_304_info_v2_4_3 as mkt304
 import CPS_DEL_LOG_V2 as cps_log_del
 import CRM_DEL_LOG_V2 as crm_log_del
 import DAILY_SYS_CHK as sys_ck
+import QA_PHOTO_BAK as QA_BAK
 
 def job():
 	str_date = str(datetime.datetime.now())
@@ -43,10 +44,21 @@ def job3():
 	mkt304.MAIN_CN_MKT_304()
 
 def job4():
-	str_date = str(datetime.datetime.now())
+	#取得目前時間
+	dt = datetime.datetime.now()
+	str_day = str(dt.day)	#取得當天日期，日的部分
+	#print(str_day)
+
+	str_date = str(dt)
+	str_date = parser.parse(str_date).strftime("%Y%m%d")
+
 	print("執行job 4: 目前時間:" + str_date + "\n")
-	cps_log_del.DEL_CPS_LOG()
-	crm_log_del.DEL_CRM_LOG()
+	if str_day == "3":
+		cps_log_del.DEL_CPS_LOG()
+		crm_log_del.DEL_CRM_LOG()
+		QA_BAK.MAIN_QA_PHOTO_BAK()
+	else:
+		print('每個月的第3日執行，未到執行日期，等待下次執行...')
 
 def job5():
 	str_date = str(datetime.datetime.now())
@@ -73,12 +85,14 @@ if __name__ == '__main__':
 	schedule.every(10).minutes.do(job2)
 
 	#市場資訊報價抓取
+	schedule.every().day.at("07:30").do(job3)
+	schedule.every().day.at("09:00").do(job3)
 	schedule.every().day.at("12:50").do(job3)
 	schedule.every().day.at("14:00").do(job3)
+	schedule.every().day.at("16:00").do(job3)
 
-	#CPS、CRM舊LOG檔案刪除(每個月的第3日執行)
-	if str_day == "3":
-		schedule.every().day.at("09:10").do(job4)
+	#CPS、CRM舊LOG檔案刪除、QA_PHOTO備份(每個月的第3日執行)
+	schedule.every().day.at("09:10").do(job4)
 
 	#每日系統檢查(僅STA)
 	schedule.every().day.at("08:05").do(job5)

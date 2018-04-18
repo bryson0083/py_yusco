@@ -410,8 +410,6 @@ def Read_MTP():
 	global conn
 	global file
 
-	toady = datetime.datetime.now()
-	yyyy = str(toady.year)
 	err_flag = False
 
 	#讀取帳密參數檔
@@ -427,7 +425,8 @@ def Read_MTP():
 	# 登入頁面取得，__VIEWSTATE參數值
 	headers = {'User-Agent':'User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36'}
 
-	driver = webdriver.Chrome()
+	#driver = webdriver.Chrome()
+	driver = webdriver.PhantomJS()
 	driver.get("https://metals.argusmedia.com/n/Login?ReturnUrl=%2f")
 
 	#輸入帳號密碼登入網站
@@ -468,10 +467,12 @@ def Read_MTP():
 	find_str_idx = 1
 
 	if find_str_idx > 0:
-		driver.get("https://metals.argusmedia.com/feeds/lme/nickel")
+		#driver.get("https://metals.argusmedia.com/price/assessment/lme-nickel-3-month-official")
+		driver.get("https://metals.argusmedia.com/price/assessment/lme-nickel-cash-official")
 
 		#讀取報價table
-		elem = driver.find_elements_by_xpath('/html/body/div[2]/div/div/div/div/div/table[7]/tbody[1]')[0]
+		elem = driver.find_elements_by_xpath('//*[@id="assessment_price_table_data"]/tbody')[0]
+
 		#print(elem)
 
 		rdata = []	
@@ -483,11 +484,13 @@ def Read_MTP():
 
 			rdata.append(td_data)
 
+	#print(rdata)
+
 	#排除空的list元素
 	data = []
 	for row in rdata:
 		if len(row) > 0:
-			data.append((row[0],row[1]))
+			data.append((row[0],row[3]))
 
 	# 關閉瀏覽器視窗
 	driver.quit();
@@ -499,8 +502,8 @@ def Read_MTP():
 
 	for i in range(0,len(df)):
 		#print(str(df.index[i]))
-		dt = str(df.iloc[i][0]) + " " + yyyy
-		dt = parser.parse(dt).strftime("%Y%m%d")
+
+		dt = parser.parse(str(df.iloc[i][0])).strftime("%Y%m%d")
 		cash = str(df.iloc[i][1]).replace(",", "")
 		#print(dt + "  " + cash + "\n")
 
@@ -509,7 +512,7 @@ def Read_MTP():
 		date_last_maint = parser.parse(str_date).strftime("%Y%m%d")
 		time_last_maint = parser.parse(str_date).strftime("%H%M%S")
 		user_last_maint = "YUSTA00"
-
+		
 		#檢查資料是否已存在
 		strsql  = "select count(*) from MARKET_304 "
 		strsql += "where MARKET_DATE = '" + dt + "' "
@@ -554,7 +557,7 @@ def Read_MTP():
 			print(strsql + "\n")
 			print("sql_code=" + str(error.code) + "\n")
 			print("err_msg=" + error.message + "\n")
-
+		
 	if err_flag == False:
 		file.write("Read_MTP資料庫insert/update成功.\n")
 		print("Read_MTP資料庫insert/update成功.\n")
@@ -563,8 +566,7 @@ def Read_MTP():
 	else:
 		conn.execute("rollback")
 		return 1
-
-
+	
 def Read_51BXG():
 	global conn
 	global file
@@ -1053,6 +1055,9 @@ def MAIN_CN_MKT_304():
 		print("51bxg 資料抓取錯誤，例外訊息如下:")
 		print(e.args)
 		print("\n\n")
+		file.write("51bxg 資料抓取錯誤，例外訊息如下:")
+		file.write(str(e.args))
+		file.write("\n\n")
 
 	try:
 		print("Read cnccm ...")
@@ -1063,6 +1068,9 @@ def MAIN_CN_MKT_304():
 		print("cnccm 資料抓取錯誤，例外訊息如下:")
 		print(e.args)
 		print("\n\n")
+		file.write("cnccm 資料抓取錯誤，例外訊息如下:")
+		file.write(str(e.args))
+		file.write("\n\n")
 
 	try:
 		print("Read metalprices.com ...")
@@ -1073,12 +1081,15 @@ def MAIN_CN_MKT_304():
 		print("MTP 資料抓取錯誤，例外訊息如下:")
 		print(e.args)
 		print("\n\n")
+		file.write("MTP 資料抓取錯誤，例外訊息如下:\n")
+		file.write(str(e.args))
+		file.write("\n\n")
 
 	#20170717 中國聯合帳號過期，暫時不跑
 	#print("Read custeel ...")
 	#rt4 = Read_CUSTEEL()
 	#print(rt4)
-
+	
 	tEnd = time.time()#計時結束
 	file.write ("\n\n\n結轉耗時 %f sec\n" % (tEnd - tStart)) #會自動做進位
 	file.write("*** End LOG ***\n\n")

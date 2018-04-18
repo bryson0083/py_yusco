@@ -3,6 +3,7 @@ import time
 import datetime
 from dateutil import parser
 import json
+import pandas as pd
 
 ##################################################################################
 # MAIN																			 #
@@ -39,7 +40,7 @@ if dt3[0] == "0":
 
 #以當下的時間，往前推10分鐘的日期時間，搜尋SQL CODE=-1003錯誤。
 chk_dt_ls = []
-for i in range(0,11,1):
+for i in range(0,10,1):
 	tmp_date = parser.parse(str_date).strftime("%Y/%m/%d %H:%M")
 	date_1 = datetime.datetime.strptime(tmp_date, "%Y/%m/%d %H:%M")
 	tmp_date = date_1 + datetime.timedelta(minutes=-i)
@@ -105,8 +106,8 @@ tn.close()
 #以MGR身分登入系統進行處理
 USER_ID = data['axp76a_mgr']['id']
 PASSWORD = data['axp76a_mgr']['pwd']
-
 if cnt > 0:
+#if cnt == 0:
 	###########################
 	# 檢查AXP76A上GEN PROCESS #
 	###########################
@@ -115,7 +116,7 @@ if cnt > 0:
 	tn = telnetlib.Telnet('100.1.1.2') 
 
 	#for telnetlib debug
-	tn.set_debuglevel(0)
+	#tn.set_debuglevel(0)
 
 	tn.read_until(b"Username: ",timeout)
 	tn.write(USER_ID.encode('ascii') + b"\r")
@@ -186,7 +187,7 @@ if cnt > 0:
 	tn = telnetlib.Telnet('100.1.1.3') 
 
 	#for telnetlib debug
-	tn.set_debuglevel(0)
+	#tn.set_debuglevel(0)
 
 	tn.read_until(b"Username: ",timeout)
 	tn.write(USER_ID.encode('ascii') + b"\r")
